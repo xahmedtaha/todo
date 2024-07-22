@@ -5,8 +5,10 @@ import Task from "./Task.vue";
 import EmptyState from "./EmptyState.vue";
 import Pagination from "./Pagination.vue";
 import LoadingState from "./LoadingState.vue";
+import TaskListDropdown from "@/components/TaskListDropdown.vue";
 
 const loading = ref(true)
+
 const tasks = ref([])
 
 const paginationLinks = ref({next: null, prev: null})
@@ -14,6 +16,9 @@ const currentPage = ref(1)
 const lastPage = ref(null)
 const perPage = ref(null)
 const total = ref(null)
+
+const sortBy = ref(null)
+const searchQuery = ref(null)
 
 onMounted(() => {
     axios.get(route('tasks.index')).then(response => {
@@ -64,13 +69,15 @@ const prevPage = () => {
         })
     }
 }
+
+
 </script>
 
 <template>
     <main class="min-h-screen w-full flex items-center justify-center">
         <div class="max-w-2xl w-full mx-auto">
             <div class="mb-4 px-4 sm:px-0 gap-3 flex justify-between items-center ">
-                <h1 class="text-2xl font-bold leading-9 tracking-tight text-gray-900">Tasks</h1>
+                <TaskListDropdown />
                 <UserDropdown />
             </div>
 

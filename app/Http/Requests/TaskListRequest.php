@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class TaskRequest extends FormRequest
+class TaskListRequest extends FormRequest
 {
     /**
      * Prepare the data for validation.
@@ -20,11 +20,7 @@ class TaskRequest extends FormRequest
     {
         return [
             'title' => ['required'],
-            'description' => ['nullable'],
-            'status' => ['required'],
-            'due_date' => ['nullable', 'date'],
             'user_id' => ['required', 'exists:users'],
-            'task_list_id' => ['required', 'exists:task_lists'],
         ];
     }
 

@@ -11,7 +11,8 @@ class TaskController extends Controller
 {
     public function index(Request $request)
     {
-        return TaskResource::collection(Task::withTrashed()->paginate(5));
+        $user = auth()->user();
+        return TaskResource::collection($user->tasks()->withTrashed()->where('task_list_id', $request->task_list ?? $user->taskLists()->first()->id)->paginate(5));
     }
 
     public function store(TaskRequest $request)
@@ -21,11 +22,15 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
+        if($task->user_id !== auth()->id()) abort(403);
+
         return new TaskResource($task);
     }
 
     public function update(TaskRequest $request, Task $task)
     {
+        if($task->user_id !== auth()->id()) abort(403);
+
         $task->update($request->validated());
 
         return new TaskResource($task);
@@ -33,6 +38,8 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
+        if($task->user_id !== auth()->id()) abort(403);
+
         $task->delete();
 
         return response()->json();
@@ -40,6 +47,8 @@ class TaskController extends Controller
 
     public function restore(Task $task)
     {
+        if($task->user_id !== auth()->id()) abort(403);
+
         if ($task->trashed()) $task->restore();
 
         return new TaskResource($task);

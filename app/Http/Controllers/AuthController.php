@@ -26,6 +26,10 @@ class AuthController extends Controller
 
         $user = User::create($data);
 
+        $user->taskLists()->create([
+            'title' => 'Tasks',
+        ]);
+
         event(new Registered($user));
 
         Auth::login($user, $request->exists('remember'));
