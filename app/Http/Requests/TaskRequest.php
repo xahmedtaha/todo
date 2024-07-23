@@ -23,8 +23,8 @@ class TaskRequest extends FormRequest
             'description' => ['nullable'],
             'status' => ['required'],
             'due_date' => ['nullable', 'date'],
-            'user_id' => ['required', 'exists:users'],
-            'task_list_id' => ['required', 'exists:task_lists'],
+            'user_id' => ['required', 'exists:users,id'],
+//            'task_list_id' => ['required', 'exists:task_lists'],
         ];
     }
 

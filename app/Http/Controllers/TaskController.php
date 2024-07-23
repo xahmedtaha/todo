@@ -12,7 +12,19 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        return TaskResource::collection($user->tasks()->withTrashed()->where('task_list_id', $request->task_list ?? $user->taskLists()->first()->id)->paginate(5));
+        $tasks = $user->tasks();
+
+        if ($request->has('taskListId')) $tasks->where('task_list_id', $request->taskListId);
+        if ($request->has('sortBy') && in_array($request->sortBy, ['id', 'title', 'due_date'])) $tasks->orderBy($request->sortBy);
+
+        return TaskResource::collection($tasks->paginate(5));
+    }
+
+    public function getDeletedTasks()
+    {
+        $user = auth()->user();
+        $tasks = $user->tasks()->onlyTrashed();
+        return new TaskResource($tasks->paginate(5));
     }
 
     public function store(TaskRequest $request)

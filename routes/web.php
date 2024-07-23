@@ -17,5 +17,5 @@ Route::middleware('auth')->group(function () {
 
     Route::view('/', 'tasks')->name('tasks');
     Route::resource('tasks', TaskController::class);
-    Route::resource('lists', TaskListController::class);
+    Route::resource('task-lists', TaskListController::class);
 });

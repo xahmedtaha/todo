@@ -20,7 +20,7 @@ class TaskListRequest extends FormRequest
     {
         return [
             'title' => ['required'],
-            'user_id' => ['required', 'exists:users'],
+            'user_id' => ['required', 'exists:users,id'],
         ];
     }
 
