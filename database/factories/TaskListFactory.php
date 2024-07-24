@@ -14,11 +14,10 @@ class TaskListFactory extends Factory
     public function definition(): array
     {
         return [
+            'title' => $this->faker->word(),
+            'user_id' => User::first()->id,
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
-            'title' => $this->faker->word(),
-
-            'user_id' => User::factory(),
         ];
     }
 }

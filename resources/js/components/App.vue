@@ -70,9 +70,15 @@ const loadTasks = () => {
 const nextPage = () => {
     if(paginationLinks.value.next) {
         tasksLoading.value = true
-        axios.get(paginationLinks.value.next).then(response => {
-            tasks.value = []
-            tasks.value.push(...response.data.data)
+        axios.get(paginationLinks.value.next, {
+            params: {
+                taskListId: currentListId.value,
+                sortBy: sortBy.value,
+                searchQuery: searchQuery.value,
+                status: status.value,
+            }
+        }).then(response => {
+            tasks.value = response.data.data
             paginationLinks.value.next = response.data.links.next
             paginationLinks.value.prev = response.data.links.prev
             currentPage.value = response.data.meta.current_page
@@ -88,9 +94,15 @@ const nextPage = () => {
 const prevPage = () => {
     if(paginationLinks.value.prev) {
         tasksLoading.value = true
-        axios.get(paginationLinks.value.prev).then(response => {
-            tasks.value = []
-            tasks.value.push(...response.data.data)
+        axios.get(paginationLinks.value.prev, {
+            params: {
+                taskListId: currentListId.value,
+                sortBy: sortBy.value,
+                searchQuery: searchQuery.value,
+                status: status.value,
+            }
+        }).then(response => {
+            tasks.value = response.data.data
             paginationLinks.value.next = response.data.links.next
             paginationLinks.value.prev = response.data.links.prev
             currentPage.value = response.data.meta.current_page
