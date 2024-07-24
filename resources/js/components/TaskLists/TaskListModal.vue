@@ -21,7 +21,6 @@ const currentList = ref({
     title: props.list?.title
 })
 watchEffect((isOpen) => {
-    console.log('Nuh uh')
     if (isOpen) currentList.value = {
         id: props.list.id,
         title: props.list.title,

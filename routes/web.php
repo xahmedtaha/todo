@@ -16,6 +16,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
     Route::view('/', 'tasks')->name('tasks');
+
+    Route::post('/tasks/{id}/restore', [TaskController::class, 'restore'])->name('tasks.restore');
     Route::resource('tasks', TaskController::class);
     Route::resource('task-lists', TaskListController::class);
 });

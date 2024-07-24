@@ -1,11 +1,14 @@
 <script setup>
 import {onMounted, ref, watch} from "vue";
 import UserDropdown from "./UserDropdown.vue";
-import Task from "./Task.vue";
-import EmptyState from "./EmptyState.vue";
+import Task from "./Task/Task.vue";
+import EmptyState from "./States/EmptyState.vue";
 import Pagination from "./Pagination.vue";
-import LoadingState from "./LoadingState.vue";
-import TaskListDropdown from "./TaskListDropdown.vue";
+import LoadingState from "./States/LoadingState.vue";
+import TaskListDropdown from "./TaskLists/TaskListDropdown.vue";
+import {refDebounced} from "@vueuse/core";
+import { PlusIcon } from '@heroicons/vue/20/solid'
+import TaskModal from "./Task/TaskModal.vue";
 
 const tasksLoading = ref(true)
 const listsLoading = ref(true)
@@ -22,7 +25,9 @@ const perPage = ref(null)
 const total = ref(null)
 
 const sortBy = ref(null)
+const status = ref('pending')
 const searchQuery = ref(null)
+const debouncedSearchQuery = refDebounced(searchQuery, 500)
 
 onMounted(() => {
     loadLists().then(() => {
@@ -30,7 +35,8 @@ onMounted(() => {
         loadTasks().then(() => {
             tasksLoading.value = false
             watch(sortBy, () => loadTasks())
-            watch(searchQuery, () => loadTasks())
+            watch(status, () => loadTasks())
+            watch(debouncedSearchQuery, () => loadTasks())
             watch(currentListId, () => loadTasks())
         })
     })
@@ -47,10 +53,11 @@ const loadTasks = () => {
         params: {
             taskListId: currentListId.value,
             sortBy: sortBy.value,
-            searchQuery: sortBy.value
+            searchQuery: searchQuery.value,
+            status: status.value,
         }
     }).then(response => {
-        tasks.value.push(...response.data.data)
+        tasks.value = response.data.data
         paginationLinks.value.next = response.data.links.next
         paginationLinks.value.prev = response.data.links.prev
         currentPage.value = response.data.meta.current_page
@@ -128,10 +135,83 @@ const deleteList = () => {
     }
 }
 
+const saveTask = (data) => {
+    tasksLoading.value = true
+    if (data.id) {
+        axios.put(route('tasks.update', data.id), {
+            title: data.title,
+            description: data.description,
+            due_date: data.due_date,
+            status: data.status,
+            task_list_id: currentListId.value,
+        }).then(response => {
+            loadTasks().then(() => tasksLoading.value = false)
+        })
+    } else {
+        axios.post(route('tasks.store'), {
+            title: data.title,
+            description: data.description,
+            due_date: data.due_date,
+            status: data.status,
+            task_list_id: currentListId.value,
+        }).then(response => {
+            loadTasks().then(() => tasksLoading.value = false)
+        })
+    }
+}
+
+const deleteTask = (id) => {
+    tasksLoading.value = true
+    axios.delete(route('tasks.destroy', id)).then(response => {
+        loadTasks().then(() => tasksLoading.value = false)
+    })
+}
+
+const restoreTask = (id) => {
+    tasksLoading.value = true
+    axios.post(route('tasks.restore', id)).then(response => {
+        loadTasks().then(() => tasksLoading.value = false)
+    })
+}
+
+const taskModalOpen = ref(false)
+const modalTaskData = ref({
+    id: null,
+    title: '',
+    description: '',
+    status: 'pending',
+    due_date: null,
+})
+
+const openTaskCreateModal = () => {
+    modalTaskData.value = {
+        id: null,
+        title: '',
+        description: '',
+        status: 'pending',
+        due_date: null,
+    }
+    taskModalOpen.value = true
+}
+const openTaskEditModal = (id) => {
+    let data = tasks.value.find((task) => task.id === id)
+    if(data !== -1) {
+        modalTaskData.value = {
+            id: data.id,
+            title: data.title,
+            description: data.description,
+            status: data.status,
+            due_date: data.due_date,
+        }
+        taskModalOpen.value = true
+    }
+}
+
 </script>
 
 <template>
     <main class="min-h-screen w-full flex items-center justify-center">
+        <TaskModal :open="taskModalOpen" :task="modalTaskData" @close="taskModalOpen = false" @save="task => saveTask(task)" />
         <div class="max-w-2xl w-full mx-auto">
             <div class="mb-4 px-4 sm:px-0 gap-3 flex justify-between items-center ">
                 <TaskListDropdown :loading="listsLoading" :lists="taskLists" @deleteList="deleteList" @saveList="saveList" @changeList="(id) => currentListId = id" :currentList="currentListId" />
@@ -139,17 +219,38 @@ const deleteList = () => {
             </div>
 
             <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
-                <div class="px-4 py-5 sm:px-6">
-
+                <div class="px-4 py-5 sm:px-6 flex flex-col md:flex-row gap-4 md:items-center">
+                    <div>
+                        <input v-model="searchQuery" type="search" name="search" id="search" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" placeholder="Search Tasks..." />
+                    </div>
+                    <div>
+                        <select v-model="sortBy" id="sort_by" name="sort_by" class="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                            <option :value="null">Sort By</option>
+                            <option value="title">Title</option>
+                            <option value="due_date">Due Date</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select v-model="status" id="sort_by" name="sort_by" class="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="deleted">Deleted</option>
+                        </select>
+                    </div>
+                    <div class="ml-auto justify-end">
+                        <button @click="openTaskCreateModal" type="button" class="rounded-full bg-indigo-600 p-2 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                            <PlusIcon class="h-5 w-5" aria-hidden="true" />
+                        </button>
+                    </div>
                 </div>
-                <div class="px-4 py-5 sm:p-6">
-                    <ul role="list" class="divide-y divide-gray-200">
+                <div class="px-4 sm:px-6">
+                    <ul role="list" class="divide-y divide-gray-200" v-show="!tasksLoading">
                         <li v-for="task in tasks" :key="task.id" class="py-4">
-                            <Task :task="task" />
+                            <Task @edit="openTaskEditModal" @delete="deleteTask" @restore="restoreTask" :task="task" />
                         </li>
                     </ul>
                     <LoadingState v-if="tasksLoading" class="mx-auto my-8" />
-                    <EmptyState v-if="!tasks.length && !tasksLoading" />
+                    <EmptyState v-if="!tasks.length && !tasksLoading" class="my-8 mx-auto" />
                 </div>
                 <div class="px-4 py-4 sm:px-6">
                     <Pagination

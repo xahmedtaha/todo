@@ -16,15 +16,13 @@ class TaskController extends Controller
 
         if ($request->has('taskListId')) $tasks->where('task_list_id', $request->taskListId);
         if ($request->has('sortBy') && in_array($request->sortBy, ['id', 'title', 'due_date'])) $tasks->orderBy($request->sortBy);
+        if ($request->has('searchQuery')) $tasks->where('name', 'like', '%' . $request->searchQuery . '%');
+        if ($request->has('status') && in_array($request->status, ['pending', 'completed', 'deleted'])) {
+            if ($request->status === 'deleted') $tasks->onlyTrashed();
+            else ($tasks->where('status', $request->status));
+        }
 
         return TaskResource::collection($tasks->paginate(5));
-    }
-
-    public function getDeletedTasks()
-    {
-        $user = auth()->user();
-        $tasks = $user->tasks()->onlyTrashed();
-        return new TaskResource($tasks->paginate(5));
     }
 
     public function store(TaskRequest $request)
@@ -57,8 +55,10 @@ class TaskController extends Controller
         return response()->json();
     }
 
-    public function restore(Task $task)
+    public function restore($id)
     {
+        $task = Task::onlyTrashed()->findOrFail($id);
+
         if($task->user_id !== auth()->id()) abort(403);
 
         if ($task->trashed()) $task->restore();
