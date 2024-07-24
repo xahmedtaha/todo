@@ -9,8 +9,6 @@ This is a basic todo web app built with laravel and vue.js with the following fe
 - soft deletion and restore
 - filtering based on status
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
 ## Setup
 
 The app uses sqlite as a db connection for simplicity. after cloning the repo run the following commands.
@@ -32,4 +30,6 @@ The app uses sqlite as a db connection for simplicity. after cloning the repo ru
 Then access the app using the URL printed on the screen.
 
 ## Video Demo
+
+https://github.com/user-attachments/assets/8ff5c870-e30d-4612-af3a-798ff534e1dd
 
