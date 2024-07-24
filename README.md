@@ -25,7 +25,9 @@ The app uses sqlite as a db connection for simplicity. after cloning the repo ru
 
 `npm run build`
 
-`php artisan migrate` or `php artisan migrate --seed` if you want to fill the DB with test data and user credentials (test@test.com : password).
+Note: If you are using the default sqlite db uploaded with this app no need to rerun migrations.
+
+`php artisan migrate:fresh` or `php artisan migrate:fresh --seed` if you want to fill the DB with test data and user credentials (test@test.com : password).
 
 `php artisan serve`
 
