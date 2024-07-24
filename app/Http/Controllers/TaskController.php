@@ -16,7 +16,7 @@ class TaskController extends Controller
 
         if ($request->has('taskListId')) $tasks->where('task_list_id', $request->taskListId);
         if ($request->has('sortBy') && in_array($request->sortBy, ['id', 'title', 'due_date'])) $tasks->orderBy($request->sortBy);
-        if ($request->has('searchQuery')) $tasks->where('name', 'like', '%' . $request->searchQuery . '%');
+        if ($request->has('searchQuery')) $tasks->where('title', 'like', '%' . $request->searchQuery . '%');
         if ($request->has('status') && in_array($request->status, ['pending', 'completed', 'deleted'])) {
             if ($request->status === 'deleted') $tasks->onlyTrashed();
             else ($tasks->where('status', $request->status));
